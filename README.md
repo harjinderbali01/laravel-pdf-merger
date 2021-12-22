@@ -6,9 +6,26 @@ PDF merger for Laravel inspired by another package, created for personal use. Te
 * Also works with PDF versions above `1.4`
 * Works with `PHP 7`
 
+Interaction with the Amazon Api for vendors called MWS
+### Change your composer.json file
+```composer
+"require": {
+    // ...
+    "harjinderbali/laravel-pdf-merger": "^1.0",
+    // ...
+},
+"repositories": [
+    {
+        "name": "harjinderbali/laravel-pdf-merger",
+        "type": "vcs",
+        "url": "git@github.com:harjinderbali01/laravel-pdf-merger.git"
+    }
+]
+```
+
 ## Installation
 ```bash
- $ composer require grofgraf/laravel-pdf-merger
+ $ composer require harjinderbali/laravel-pdf-merger
 ```
 
 ## Configuration
