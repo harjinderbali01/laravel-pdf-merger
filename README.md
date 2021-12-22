@@ -6,7 +6,6 @@ PDF merger for Laravel inspired by another package, created for personal use. Te
 * Also works with PDF versions above `1.4`
 * Works with `PHP 7`
 
-Interaction with the Amazon Api for vendors called MWS
 ### Change your composer.json file
 ```composer
 "require": {
