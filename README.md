@@ -10,7 +10,7 @@ PDF merger for Laravel inspired by another package, created for personal use. Te
 ```composer
 "require": {
     // ...
-    "harjinderbali01/laravel-pdf-merger": "^1.0",
+    "harjinderbali01/laravel-pdf-merger": "*",
     // ...
 },
 "repositories": [
