@@ -2,11 +2,12 @@
 
 namespace GrofGraf\LaravelPDFMerger;
 
-use setasign\Fpdi\Fpdi;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
+use setasign\Fpdi\Fpdi;
 
-class PDFMerger {
+class PDFMerger
+{
     /**
      * Access the filesystem on an oop base
      *
@@ -41,7 +42,8 @@ class PDFMerger {
      * Construct and initialize a new instance
      * @param Filesystem $Filesystem
      */
-    public function __construct(Filesystem $filesystem){
+    public function __construct(Filesystem $filesystem)
+    {
         $this->filesystem = $filesystem;
         $this->createDirectoryForTemporaryFiles();
         $this->fpdi = new Fpdi();
@@ -51,11 +53,12 @@ class PDFMerger {
     /**
      * The class deconstructor method
      */
-    public function __destruct() {
-      $filesystem = $this->filesystem;
-      $this->tmpFiles->each(function($filePath) use($filesystem){
-          $filesystem->delete($filePath);
-      });
+    public function __destruct()
+    {
+        $filesystem = $this->filesystem;
+        $this->tmpFiles->each(function ($filePath) use ($filesystem) {
+            $filesystem->delete($filePath);
+        });
     }
     /**
      * Initialize a new internal instance of FPDI in order to prevent any problems with shared resources
@@ -63,39 +66,44 @@ class PDFMerger {
      *
      * @return self
      */
-    public function init(){
-      return $this;
+    public function init()
+    {
+        return $this;
     }
     /**
      * Stream the merged PDF content
      *
      * @return string
      */
-    public function inline(){
-      return $this->fpdi->Output($this->fileName, 'I');
+    public function inline()
+    {
+        return $this->fpdi->Output($this->fileName, 'I');
     }
     /**
      * Download the merged PDF content
      *
      * @return string
      */
-    public function download(){
-      return $this->fpdi->Output($this->fileName, 'D');
+    public function download()
+    {
+        return $this->fpdi->Output($this->fileName, 'D');
     }
     /**
      * Save the merged PDF content to the filesystem
      *
      * @return string
      */
-    public function save($filePath = null){
-      return $this->filesystem->put($filePath ? $filePath : $this->fileName, $this->string());
+    public function save($filePath = null)
+    {
+        return $this->filesystem->put($filePath ? $filePath : $this->fileName, $this->string());
     }
     /**
      * Get the merged PDF content as binary string
      *
      * @return string
      */
-    public function string(){
+    public function string()
+    {
         return $this->fpdi->Output($this->fileName, 'S');
     }
     /**
@@ -104,7 +112,8 @@ class PDFMerger {
      *
      * @return string
      */
-    public function setFileName($fileName){
+    public function setFileName($fileName)
+    {
         $this->fileName = $fileName;
         return $this;
     }
@@ -116,8 +125,9 @@ class PDFMerger {
      *
      * @return void
      */
-    public function addPDFString($string, $pages = 'all', $orientation = null){
-        $filePath = storage_path('tmp/'.str_random(16).'.pdf');
+    public function addPDFString($string, $pages = 'all', $orientation = null)
+    {
+        $filePath = storage_path('tmp/' . Str::random(16) . '.pdf');
         $this->filesystem->put($filePath, $string);
         $this->tmpFiles->push($filePath);
         return $this->addPathToPDF($filePath, $pages, $orientation);
@@ -132,17 +142,18 @@ class PDFMerger {
      *
      * @throws \Exception if the given pages aren't correct
      */
-    public function addPathToPDF($filePath, $pages = 'all', $orientation = null) {
+    public function addPathToPDF($filePath, $pages = 'all', $orientation = null)
+    {
         if (file_exists($filePath)) {
-          $filePath = $this->convertPDFVersion($filePath);
-          if (!is_array($pages) && strtolower($pages) != 'all') {
-              throw new \Exception($filePath."'s pages could not be validated");
-          }
-          $this->files->push([
-              'name'  => $filePath,
-              'pages' => $pages,
-              'orientation' => $orientation
-          ]);
+            $filePath = $this->convertPDFVersion($filePath);
+            if (!is_array($pages) && strtolower($pages) != 'all') {
+                throw new \Exception($filePath . "'s pages could not be validated");
+            }
+            $this->files->push([
+                'name' => $filePath,
+                'pages' => $pages,
+                'orientation' => $orientation,
+            ]);
         } else {
             throw new \Exception("Could not locate PDF on '$filePath'");
         }
@@ -156,42 +167,44 @@ class PDFMerger {
      *
      * @throws \Exception if there are now PDFs to merge
      */
-    public function duplexMerge($orientation = 'P'){
-      $this->merge($orientation, true);
+    public function duplexMerge($orientation = 'P')
+    {
+        $this->merge($orientation, true);
     }
 
-    public function merge($orientation = 'P', $duplex = false) {
-      if ($this->files->count() == 0) {
-          throw new \Exception("No PDFs to merge.");
-      }
-      $fpdi = $this->fpdi;
-      $files = $this->files;
-      foreach($files as $index => $file){
-        $file['orientation'] = is_null($file['orientation']) ? $orientation : $file['orientation'];
-        $count = $fpdi->setSourceFile($file['name']);
-        if($file['pages'] == 'all') {
-          $pages = $count;
-          for ($i = 1; $i <= $count; $i++) {
-            $template   = $fpdi->importPage($i);
-            $size       = $fpdi->getTemplateSize($template);
-            $fpdi->AddPage($file['orientation'], [$size['width'], $size['height']]);
-            $fpdi->useTemplate($template);
-          }
-        }else {
-          $pages = count($file['pages']);
-          foreach ($file['pages'] as $page) {
-            if (!$template = $fpdi->importPage($page)) {
-              throw new \Exception("Could not load page '$page' in PDF '".$file['name']."'. Check that the page exists.");
+    public function merge($orientation = 'P', $duplex = false)
+    {
+        if ($this->files->count() == 0) {
+            throw new \Exception("No PDFs to merge.");
+        }
+        $fpdi = $this->fpdi;
+        $files = $this->files;
+        foreach ($files as $index => $file) {
+            $file['orientation'] = is_null($file['orientation']) ? $orientation : $file['orientation'];
+            $count = $fpdi->setSourceFile($file['name']);
+            if ($file['pages'] == 'all') {
+                $pages = $count;
+                for ($i = 1; $i <= $count; $i++) {
+                    $template = $fpdi->importPage($i);
+                    $size = $fpdi->getTemplateSize($template);
+                    $fpdi->AddPage($file['orientation'], [$size['width'], $size['height']]);
+                    $fpdi->useTemplate($template);
+                }
+            } else {
+                $pages = count($file['pages']);
+                foreach ($file['pages'] as $page) {
+                    if (!$template = $fpdi->importPage($page)) {
+                        throw new \Exception("Could not load page '$page' in PDF '" . $file['name'] . "'. Check that the page exists.");
+                    }
+                    $size = $fpdi->getTemplateSize($template);
+                    $fpdi->AddPage($file['orientation'], [$size['width'], $size['height']]);
+                    $fpdi->useTemplate($template);
+                }
             }
-            $size = $fpdi->getTemplateSize($template);
-            $fpdi->AddPage($file['orientation'], [$size['width'], $size['height']]);
-            $fpdi->useTemplate($template);
-          }
+            if ($duplex && $pages % 2 && $index < (count($files) - 1)) {
+                $fpdi->AddPage($file['orientation'], [$size['width'], $size['height']]);
+            }
         }
-        if ($duplex && $pages % 2 && $index < (count($files) - 1)) {
-          $fpdi->AddPage($file['orientation'], [$size['width'], $size['height']]);
-        }
-      }
     }
 
     /**
@@ -200,22 +213,23 @@ class PDFMerger {
      *
      * @return string
      */
-    protected function convertPDFVersion($filePath){
-      $pdf = fopen($filePath, "r");
-      $first_line = fgets($pdf);
-      fclose($pdf);
-      //extract version number
-      preg_match_all('!\d+!', $first_line, $matches);
-      $pdfversion = implode('.', $matches[0]);
-      if($pdfversion > "1.4"){
-        $newFilePath = storage_path('tmp/' . str_random(16) . '.pdf');
-        //execute shell script that converts PDF to correct version and saves it to tmp folder
-        shell_exec('gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="'. $newFilePath . '" "' . $filePath . '"');
-        $this->tmpFiles->push($newFilePath);
-        $filePath = $newFilePath;
-      }
-      //return correct file path
-      return $filePath;
+    protected function convertPDFVersion($filePath)
+    {
+        $pdf = fopen($filePath, "r");
+        $first_line = fgets($pdf);
+        fclose($pdf);
+        //extract version number
+        preg_match_all('!\d+!', $first_line, $matches);
+        $pdfversion = implode('.', $matches[0]);
+        if ($pdfversion > "1.4") {
+            $newFilePath = storage_path('tmp/' . Str::random(16) . '.pdf');
+            //execute shell script that converts PDF to correct version and saves it to tmp folder
+            shell_exec('gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile="' . $newFilePath . '" "' . $filePath . '"');
+            $this->tmpFiles->push($newFilePath);
+            $filePath = $newFilePath;
+        }
+        //return correct file path
+        return $filePath;
     }
 
     /**
@@ -225,7 +239,7 @@ class PDFMerger {
      */
     protected function createDirectoryForTemporaryFiles(): void
     {
-        if (! $this->filesystem->isDirectory(storage_path('tmp'))) {
+        if (!$this->filesystem->isDirectory(storage_path('tmp'))) {
             $this->filesystem->makeDirectory(storage_path('tmp'));
         }
     }
